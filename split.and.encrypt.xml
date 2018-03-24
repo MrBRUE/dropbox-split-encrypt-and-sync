@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="test" default="run" basedir="dist" xmlns:ac="antlib:net.sf.antcontrib">
+	<description>Just a compound of activities</description>
+
+  <property name="cipherTransformation" value="DES/ECB/PKCS5Padding" />
+  <property name="keystore" value="my-key.ser"/>
+  <property name="keystore_dir" value="${basedir}"/>
+  <property name="enc_sub_dir" value="C:\Temp\enc"/>
+
+  <!-- this script relies on the ant contrib project, so the jar has to be accessible -->
+   <taskdef resource="net/sf/antcontrib/antlib.xml">
+      <classpath>
+            <fileset dir="${basedir}" includes="*.jar"/>
+            <pathelement location="ant-contrib.jar"/>
+      </classpath>
+  </taskdef>
+
+  	<taskdef name="crypter" classname="za.co.massdosage.ant.Crypter">
+		<classpath>
+			<pathelement location="crypter-ant.jar" />
+		</classpath>
+	</taskdef>
+
+	  	<taskdef name="splitter" classname="com.moe.getjiggy.MoeSplitter">
+		<classpath>
+			<pathelement location="filesplitter.jar" />
+		</classpath>
+	</taskdef>
+
+	  <taskdef name="upload" classname="com.moe.getjiggy.DBUploader">
+      <classpath>
+        <pathelement location="upDB.jar" />
+        <pathelement location="json_simple-1.1.jar" />
+        <pathelement location="httpmime-4.0.3.jar"/>
+        <pathelement location="httpcore-4.0.1.jar"/>
+        <pathelement location="httpclient-4.0.3.jar"/>
+        <pathelement location="dropbox-java-sdk-1.3.1.jar"/>
+        <pathelement location="dropbox-core-sdk-1.7.6.jar"/>
+        <pathelement location="jackson-core-2.2.3.jar"/>
+      </classpath>
+	</taskdef>
+
+  <property name="process_dir" value="C:\Temp"/>
+  <property name="chunk_name" value="mychunk.part"/>
+
+  <target name="run">
+
+      <!--chunks are in MB, chunkName defines the basic file naming convention, for each chunk numbers will be attached to this at the very end of the file name -->
+      <splitter file2split="C:\output\massive.zip" chunkName="${process_dir}\${chunk_name}" chunkSize="1"/>
+
+      <!-- will be used to store the encrypted files (locally) we want to shuffle around -->
+      <mkdir dir="${enc_sub_dir}"/>
+
+      <for param="file" keepgoing="true">
+        <path>
+          <fileset dir="${process_dir}" includes="*.*"/>
+        </path>
+        <sequential>
+                 <var name="FileName" unset="true"/>
+                 <basename property="FileName" file="@{file}"/>
+            		 <crypter encrypt="true" keyFile="${keystore_dir}/${keystore}" inputFile="@{file}" outputFile="${enc_sub_dir}/${FileName}.enc"
+                cipherTransformation="${cipherTransformation}"
+              />
+         </sequential>
+      </for>
+
+	<!--	From here on stuff is a completely bespoke ANT task, check out the corresponding Eclipse project to see how it works, re-compiliations are likely to be required -->
+       <for param="file" keepgoing="true">
+        <path>
+          <fileset dir="${enc_sub_dir}" includes="*.enc"/>
+        </path>
+        <sequential>
+             <!-- use property appkey here if you want to pass it on -->
+            <upload file2upload="@{file}" appidentifier="flourishApp" />
+            <sleep seconds="5"/>
+         </sequential>
+      </for>
+
+
+	</target>
+
+
+
+</project>

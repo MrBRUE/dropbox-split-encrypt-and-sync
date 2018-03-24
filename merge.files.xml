@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="test" default="run" basedir="dist">
+	<description>Just a compound of activities</description>
+  
+  <property name="file2merge2" value="C:\Temp\Bomp\ruff.zip"/>
+  <property name="process_dir" value="C:\Temp\trashme"/>
+  <property name="chunk_name" value="markLogicVM.part"/>
+  
+
+	
+	  	<taskdef name="splitter" classname="com.moe.getjiggy.MoeSplitter">
+		<classpath>
+			<pathelement location="filesplitter.jar" />
+		</classpath>
+	</taskdef>
+
+	  	<taskdef name="filemerger" classname="com.moe.getjiggy.PackTogether">
+		<classpath>
+			<pathelement location="filesplitter.jar" />
+      <pathelement location="commons-io-2.4.jar" />
+		</classpath>
+	</taskdef>
+
+  
+  <target name="run">
+	
+    <filemerger filePattern="${chunk_name}" fileBaseDir="${process_dir}" fileConsolidated="${file2merge2}" />  
+	
+	</target>
+
+	
+	
+</project>
